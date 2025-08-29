@@ -9,12 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # (Valgfritt, men lurt) verifiser wrapper
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v3
 
@@ -28,14 +26,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradlew executable1
+      - name: Make Gradlew executable
         run: chmod +x gradlew
 
-      - name: Build
-        run: ./gradlew build --no-daemon
-
-      - name: Build & Test
-        run: ./gradlew clean check jacocoTestReport ¨--no-daemon
+      - name: Build & Test (with JaCoCo)
+        run: ./gradlew clean build jacocoTestReport --no-daemon
 
       - name: Upload JaCoCo HTML Report
         uses: actions/upload-artifact@v4
