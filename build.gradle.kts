@@ -1,3 +1,4 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
 plugins {
 	java
 	id("org.springframework.boot") version "3.5.5"
