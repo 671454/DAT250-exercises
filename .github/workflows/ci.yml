@@ -28,9 +28,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          # Behold denne linja KUN hvis siste steg i Dockerfile heter: `FROM ... AS final`
-          # Ellers: fjern `target:`-linja.
-          target: final
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/dat250-exercise1:latest
