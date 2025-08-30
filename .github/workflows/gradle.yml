@@ -1,69 +1,39 @@
-name: ci
-
+name: gradle.yml
 on:
-  # Kjør automatisk når gradle-workflowen er ferdig
-  workflow_run:
-    workflows: ["gradle.yml"]
-    types: [completed]
-  # Og la oss kunne trigge manuelt
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  docker-build-push:
-    # Kjør kun når: (A) trigget manuelt, eller (B) gradle.yml var "success" og branchen er main
-    if: ${{ github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main') }}
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      # Sjekk ut riktig commit
-      - name: Checkout (from workflow_run)
-        if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.workflow_run.repository.full_name }}
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Checkout (manual)
-        if: ${{ github.event_name != 'workflow_run' }}
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Multi-arch bygg
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Logg inn til Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          distribution: temurin
+          java-version: 21
+          cache: gradle
 
-      # Finn repo-navnet (trengs fordi workflow_run har et annet event-objekt)
-      - name: Compute image tag
-        id: meta
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "REPO_NAME=${{ github.event.workflow_run.repository.name }}" >> $GITHUB_ENV
-          else
-            echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-          fi
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      # Bygg & push runtime-image
-      - name: Build & push image
-        uses: docker/build-push-action@v6
+      - name: Make Gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build & Test (with JaCoCo)
+        run: ./gradlew clean build jacocoTestReport --no-daemon
+
+      - name: Upload JaCoCo HTML Report
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          # behold denne linja hvis Dockerfile har:  FROM ... AS final
-          target: final
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/${{ env.REPO_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          name: jacoco-report
+          path: build/reports/jacoco/test/**
