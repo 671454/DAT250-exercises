@@ -33,6 +33,6 @@ jobs:
           target: final
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/${{ toLower(github.event.repository.name) }}:latest
+          tags: ${{ vars.DOCKER_USERNAME }}/dat250-exercise1:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
