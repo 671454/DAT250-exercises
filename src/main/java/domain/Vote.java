@@ -16,4 +16,7 @@ public class Vote {
     public void setPublishedAt(Instant publishedAt) {
         this.publishedAt = publishedAt;
     }
+
+    public void setPoll(Poll poll) {
+    }
 }
