@@ -1,13 +1,19 @@
 package com.example.demo.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User {
     private String username;
     private String email;
     private int id;
+
+    //relasjoner
     private List<Poll> pollsCreated;
     private List<Vote> votes;
 
