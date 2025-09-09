@@ -1,6 +1,13 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+### Opprett bruker
+POST http://localhost:8080/users
+Content-Type: application/json
 
-###
+{
+  "username": "Ola Nordman",
+  "email": "ola@gmail.com"
+}
 
+
+### Hent bruker 0
+GET http://localhost:8080/users/0
+Accept: application/json

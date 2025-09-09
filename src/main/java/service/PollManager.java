@@ -1,16 +1,15 @@
 package service;
 
-import domain.Poll;
-import domain.User;
-import domain.Vote;
-import domain.VoteOption;
+import com.example.demo.domain.Poll;
+import com.example.demo.domain.User;
+import com.example.demo.domain.Vote;
+import com.example.demo.domain.VoteOption;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class PollManager {
