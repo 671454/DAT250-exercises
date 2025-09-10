@@ -61,4 +61,8 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public void addVote(Vote v) {
+        votes.add(v);
+    }
 }

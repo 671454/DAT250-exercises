@@ -32,7 +32,7 @@ public class PollManagerV2 {
     /*--------------------- User ---------------------*/
     public int createUser(String username, String email) {
         if (username == null || email == null) {
-            throw new IllegalArgumentException("Username og email is empty");
+            throw new IllegalArgumentException("Username and email must be provided");
         }
 
         int id = userSeq.getAndIncrement();
@@ -45,7 +45,9 @@ public class PollManagerV2 {
     }
 
     public User getUser(int id) {
-        return users.get(id);
+        if(users.get(id) == null)
+            throw new NoSuchElementException("No user with given id " + id);
+        return users.get (id);
     }
 
     public Collection<User> getAllUsers(){
@@ -76,7 +78,7 @@ public class PollManagerV2 {
             int optId = optionSeq.getAndIncrement();
             VoteOption opt = new VoteOption();
             opt.setId(optId);
-            opt.setCaption(question);
+            opt.setCaption(s);
             opt.setPresentationOrder(order++);
             p.addOption(opt);
             this.options.put(optId, opt);
@@ -86,24 +88,73 @@ public class PollManagerV2 {
     }
 
 
+    private Poll getPoll(int pollId) {
+        if(polls.get(pollId) == null)
+            throw new NoSuchElementException("No poll with id of " + pollId);
+        return polls.get(pollId);
+    }
+
+    public Collection<Poll> listPolls(){
+        return polls.values();
+    }
+
 
 
     /*--------------------- Vote ---------------------*/
+    public int vote(int userId, int pollId, int optionId, Instant when) {
+        User u = getUser(userId);
+        Poll p = getPoll(pollId);
+        VoteOption option = getVoteOption(optionId);
 
+        if(option.getPoll() == null || option.getPoll().getId() != pollId)
+            throw new IllegalArgumentException("Either provided option is non existent or does not belong to given poll with id " + pollId);
+
+        Instant now = when != null ? when : Instant.now();
+        if(p.getValidUntil() != null && now.isAfter(p.getValidUntil()))
+            throw new IllegalStateException("Poll is not open for voting. Closed at " + p.getValidUntil() + ". Attempt to vote at " + when);
+
+        //Check if user already voted for this poll, if so remove old.
+        Vote existing = p.getVotes().stream().filter(v -> v.getVoter().getId() == userId).findFirst().orElse(null);
+
+        //remapping the vote
+        if(existing != null) {
+            detachVoteFromOption(existing);
+            existing.setOption(option);
+            existing.setPublishedAt(Instant.now());
+            option.addVote(existing);
+            return existing.getId();
+        }
+
+        int voteId = voteSeq.getAndIncrement();
+        Vote v = new Vote();
+        v.setId(voteId);
+        v.setPoll(p);
+        v.setOption(option);
+        v.setVoter(u);
+        u.addVote(v);
+        option.addVote(v);
+        p.addVote(v);
+        votes.put(voteId, v);
+        return voteId;
+    }
+
+
+
+
+    /*--------------------- VoteOption ---------------------*/
+    private VoteOption getVoteOption(int optionId) {
+        if(options.get(optionId) == null)
+            throw new NoSuchElementException(optionId + "is not an option for any poll");
+        return options.get(optionId);
+    }
 
 
 
     /*--------------------- Helpers ---------------------*/
-    private List<VoteOption> createVoteOptions(int pollId, List<String> options) {
-        int order = 1;
-        for (String s : options) {
-            int id = optionSeq.getAndIncrement();
-            VoteOption opt = new VoteOption();
-            opt.setId(id);
-            opt.setPresentationOrder(order);
-            order++;
-            opt.setPoll(pollId);
-        }
+    private void detachVoteFromOption(Vote existing) {
+        VoteOption opt = existing.getOption();
+        if(opt != null)
+            opt.getVotes().remove(existing);
     }
 
 }

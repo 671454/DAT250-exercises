@@ -60,4 +60,7 @@ public class VoteOption {
         this.presentationOrder = presentationOrder;
     }
 
+    public void addVote(Vote existing) {
+        votes.add(existing);
+    }
 }
