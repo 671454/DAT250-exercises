@@ -1,21 +1,32 @@
 DAT250 - Assignment 2
 
 ## What i implementet
-- Sping boot backend project (java 21).
-- GitHub Actions: Gradle build and tests with JaCoCo.
+- Spring boot backend project.
+- GitHub Actions: Gradle build, docker and tests with JaCoCo.
 - Domain entities from PollApp.
-- PollManager.
-- Started on a HTTP Client.
+- PollManagerV2.
+- HTTP Client.
+- REST Handlers.
+- Automated JUnit tests.
+
+The domain classes are implemented with relational attributes which makes it easy to backtrack and find all relations
+a domain object holds. This makes it also more prone to inconsistencies since there is more steps involved in creating
+and updating objects. PollManagerV2 functions as the service and is responsible for CRUD operations, and throws
+exceptions where needed. There is implemented two controllers, PollController and UserController, which handles POST-
+and GET- mappings. The controllers handles serialization and deserialization between client and server via the Jackson
+dependency. 
+HTTP Client was used to quickly test if the controllers worked.
+Automated JUnit tests where implemented and integrated as a part of the GitHub workflow file.
+The test consist of an end-to-end test which tests: create user -> create poll -> vote on poll.
 
 
-## Technical problems
-1. GitHub Actions didnt run when pushing changes to main. Solved by doing reaserch and adding workflow_dispatch.
-   Ive never used Actions and workflows before, and im also not that good with github in general, so i used a lot of time figuring this step of the exercise out. 
 
-## Pending issues
-Assignment 1 is complete, but 2 is not. I used a lot of time implementing the PollManager, so i did not have much more time trying the rest of tasks in the exercise. 
-One reason for not finishing in time is because of the assignments deadline time. Ive never seen a hand-in deadline 10:15 in the moring, and i naturally just assumed 23:59. So lack of time is mainly the reson.
-Secondly, implementing the domain model without adding the relationships between the different entities directly in the domain classes was difficult. 
-Maybe i missunderstod what the task asked for, but I have never implemented a model in this way before, so it felt like i was doing the wrong thing and tok a lot of time. 
-
-If i had have more time i am sure i would have completed the assignment. 
+## Technical problems and challenges
+1. Since ive never used GitHub Actions before, I encountered some problems implementing the two workflows 
+   ci.yml and gradle.yml. Solved by doing research.
+2. As a result of me misunderstanding how we were supposed to implement the domain classes from the model, and 
+   what responsibility the PollManager class was supposed to have, this is the second attempt im doing on this exercise.
+   For some reason I forgot the purpose of a domain model, and just implemented the classes just as presented in
+   the visual model, and this without adding attributes that represents relations between the entities. By doing it
+   this way, the PollManager class needed to hold all relations between entities through a lot of HashMaps.
+   This caused the exercise to be a lot more complex than needed.
