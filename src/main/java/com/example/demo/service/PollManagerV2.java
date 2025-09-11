@@ -1,9 +1,10 @@
-package service;
+package com.example.demo.service;
 
 import com.example.demo.domain.User;
 import com.example.demo.domain.Poll;
 import com.example.demo.domain.Vote;
 import com.example.demo.domain.VoteOption;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Primary
 @Component
 public class PollManagerV2 {
 
@@ -120,13 +122,15 @@ public class PollManagerV2 {
         if(existing != null) {
             detachVoteFromOption(existing);
             existing.setOption(option);
-            existing.setPublishedAt(Instant.now());
+            existing.setPublishedAt(now);
+            existing.setPoll(p);
             option.addVote(existing);
             return existing.getId();
         }
 
         int voteId = voteSeq.getAndIncrement();
         Vote v = new Vote();
+        v.setPublishedAt(now);
         v.setId(voteId);
         v.setPoll(p);
         v.setOption(option);

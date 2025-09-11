@@ -1,4 +1,4 @@
-package service;
+package com.example.demo.service;
 
 import com.example.demo.domain.Poll;
 import com.example.demo.domain.User;

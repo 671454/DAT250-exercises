@@ -1,13 +1,60 @@
+#NB! NB! Siden vi bruker Jackson som serialiserer objektene til JSON vil utskriften ikke bli helt komplett her.
+# VI ser at første objekt blir skrevet fult ut, fordi dette er første gang jackson ser objektet. Dette inkluderer at
+# eventuelle polls brukeren har opprettet også blir skrevet ut. Om andre brukere er innvolvert i poll'en til første
+# bruker som skrives ut vil de også skrives ut som den del av objektet til første bruker (fordi de har en relasjon).
+# Men nå har Jackson markert alle involverte brukere som lest "for første gang", og vil kun skrive ut objektes id
+# i etterkommende hendelser.
+# Derfor om det opprettes 3 brukere, hvor bruker 1 også oppretter en poll som alle brukere stemmer på, vil kun første
+# bruker printes fullt ut, mens bruker 2 og 3 kun printes ut med deres id.
+
 ### Opprett bruker
 POST http://localhost:8080/users
 Content-Type: application/json
 
 {
-  "username": "Ola Nordman",
+  "username": "Ola Nordman1",
   "email": "ola@gmail.com"
 }
 
+### Opprett bruker
+POST http://localhost:8080/users
+Content-Type: application/json
 
-### Hent bruker 0
-GET http://localhost:8080/users/0
+{
+  "username": "Ola Nordman3",
+  "email": "ola@gmail.com"
+}
+
+### Hent bruker 1
+GET http://localhost:8080/users/1
 Accept: application/json
+
+### List all users
+GET http://localhost:8080/users
+Accept: application/json
+
+### Opprett en poll
+POST http://localhost:8080/polls
+Content-Type: application/json
+
+{
+  "creatorId" : 1,
+  "question" : "Har du stått opp på rett ben i dag?",
+  "options" : ["Ja", "Nei"],
+  "validUntil" : "2025-12-31T23:59:59Z"
+}
+
+### Hent poll med id 1
+GET http://localhost:8080/polls/1
+Accept: application/json
+
+### Vote på poll med id=1 option 1
+POST http://localhost:8080/polls/1/vote
+Content-Type: application/json
+
+{
+  "userId" : 3,
+  "optionId" : 2,
+  "when" : "2025-09-11T23:59:59Z"
+}
+

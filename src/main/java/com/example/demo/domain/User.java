@@ -1,6 +1,7 @@
 package com.example.demo.domain;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.ArrayList;
@@ -14,7 +15,9 @@ public class User {
     private int id;
 
     //relasjoner
+    @JsonIdentityReference(alwaysAsId = true)
     private List<Poll> pollsCreated;
+    @JsonIdentityReference(alwaysAsId = true)
     private List<Vote> votes;
 
     public User() {
@@ -30,6 +33,7 @@ public class User {
         this.id = id;
     }
 
+    @JsonIdentityReference(alwaysAsId = true)
     public List<Poll> getPollsCreated() {
         return pollsCreated;
     }
@@ -38,6 +42,7 @@ public class User {
         this.pollsCreated = pollsCreated;
     }
 
+    @JsonIdentityReference(alwaysAsId = true)
     public List<Vote> getVotes() {
         return votes;
     }
@@ -63,6 +68,7 @@ public class User {
     }
 
     public void addVote(Vote v) {
+        v.setVoter(this);
         votes.add(v);
     }
 }

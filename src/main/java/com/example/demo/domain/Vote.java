@@ -1,6 +1,7 @@
 package com.example.demo.domain;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.time.Instant;
@@ -11,22 +12,22 @@ public class Vote {
     private int id;
 
     //Relasjoner
+    @JsonIdentityReference(alwaysAsId = true)
     private User voter;
+    @JsonIdentityReference(alwaysAsId = true)
     private Poll poll;
+    @JsonIdentityReference(alwaysAsId = true)
     private VoteOption option;
 
-    public Vote() {
+    public Vote() {}
 
-    }
-
-    public int getId() {
-        return id;
-    }
+    public int getId() {return id;}
 
     public void setId(int id) {
         this.id = id;
     }
 
+    @JsonIdentityReference(alwaysAsId = true)
     public User getVoter() {
         return voter;
     }
@@ -35,10 +36,12 @@ public class Vote {
         this.voter = voter;
     }
 
+    @JsonIdentityReference(alwaysAsId = true)
     public Poll getPoll() {
         return poll;
     }
 
+    @JsonIdentityReference(alwaysAsId = true)
     public VoteOption getOption() {
         return option;
     }
@@ -56,5 +59,6 @@ public class Vote {
     }
 
     public void setPoll(Poll poll) {
+        this.poll = poll;
     }
 }
