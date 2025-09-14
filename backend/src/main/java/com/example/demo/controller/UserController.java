@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collection;
 import java.util.List;
 
+@CrossOrigin
 @RestController //                 <--- Combines @Controller and @ResponsBody. Makes everything returned serialized to JSON (via Jackson dependency)
 @RequestMapping("/users") //    <--- Sets a base path for all methods in the class
 public class UserController {

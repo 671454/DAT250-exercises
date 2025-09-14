@@ -4,15 +4,18 @@ import com.example.demo.domain.Vote;
 import com.example.demo.domain.Poll;
 import com.example.demo.domain.VoteOption;
 import com.example.demo.service.PollManagerV2;
+import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/polls")
 public class PollController {
@@ -22,6 +25,7 @@ public class PollController {
     public PollController(PollManagerV2 manager) {
         this.manager = manager;
     }
+
 
 
     /**

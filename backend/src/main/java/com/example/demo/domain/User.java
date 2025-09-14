@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -71,4 +72,15 @@ public class User {
         v.setVoter(this);
         votes.add(v);
     }
+
+    public void addPoll(Poll p) {
+        if (p == null) return;
+        if (!pollsCreated.contains(p)) {
+            pollsCreated.add(p);
+        }
+        if (p.getCreator() != this) {
+            p.setCreator(this); // hold retur-koblingen i sync
+        }
+    }
+
 }

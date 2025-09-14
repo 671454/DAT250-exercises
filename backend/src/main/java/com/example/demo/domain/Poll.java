@@ -55,6 +55,9 @@ public class Poll {
 
     public void setCreator(User user) {
         this.creator = user;
+        if (user != null && !user.getPollsCreated().contains(this)) {
+            user.getPollsCreated().add(this); // hold retur-koblingen i sync
+        }
     }
 
     public int getId() {
