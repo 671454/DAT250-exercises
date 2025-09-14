@@ -1,0 +1,23 @@
+# VCS og OS-rot
+.git
+.DS_Store
+
+# Bygg/cache
+.gradle
+build
+out
+
+# IDE
+.idea
+**/*.iml
+.vscode
+
+# Diverse
+node_modules
+npm-debug.log
+
+# (valgfritt) behold disse ignorert hvis du vil
+LICENSE
+README.md
+docker-compose*
+compose.y*ml
