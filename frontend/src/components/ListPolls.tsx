@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import {
     getPollResults,
     getUser,
     listPolls,
     type Poll,
     type PollResult,
-    type User
-} from "../services/api.ts";
+    type User, vote
+} from "../services/api";
 
 type PollItem = {
     id: number;
@@ -16,10 +16,15 @@ type PollItem = {
 }
 
 
-export function ListPolls() {
+interface ListPollsProps {
+    currentUserId: number
+    onBack?: () => void
+}
+
+export function ListPolls({currentUserId, onBack}: ListPollsProps) {
     const [polls, setPolls] = useState<PollItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError]   = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         console.log('BASE_URL =', import.meta.env.VITE_API_BASE_URL);
@@ -40,13 +45,13 @@ export function ListPolls() {
                         }
 
                         const results = await getPollResults(p.id);
-                        return { id: p.id, question: p.question, creatorName, results };
+                        return {id: p.id, question: p.question, creatorName, results};
                     })
                 );
 
                 if (alive) setPolls(enriched);
             } catch (e) {
-                if (alive) setError("Unable to retrieve polls" + e);
+                if (alive) setError("Unable to retrieve polls" + String(e));
             } finally {
                 if (alive) setLoading(false);
             }
@@ -57,12 +62,26 @@ export function ListPolls() {
         };
     }, []);
 
-    if (loading) return <p>Laster…</p>;
-    if (error)   return <p className="text-red-600">{error}</p>;
+    async function handleVote(pollId: number, optionId: number) {
+        await vote(pollId, currentUserId, optionId, new Date().toISOString());
+        setPolls(prev => prev.map(p => p.id !== pollId ? p : {...p, results: []}))
+        const fresh =  await getPollResults(pollId);
+
+        setPolls(prev => prev.map(p => p.id !== pollId ? p : {...p, results: fresh}))
+    }
+
+
+    if (loading) return <p>Loading…</p>;
+    if (error) return <p className="text-red-600">{error}</p>;
     if (polls.length === 0) return <p>No polls yet</p>;
 
     return (
         <div className="space-y-4">
+
+            <div className={"space-y-4"}>
+                <button type={"button"} className={"border rounded px-3 py-2"} onClick={() => onBack?.()}>Home</button>
+            </div>
+
             {polls.map(p => {
                 const total = p.results.reduce((s, r) => s + Number(r.count), 0) || 1;
                 return (
@@ -81,8 +100,11 @@ export function ListPolls() {
                                             <span className="tabular-nums">{r.count} ({pct}%)</span>
                                         </div>
                                         <div className="h-2 bg-gray-200 rounded">
-                                            <div className="h-2 bg-blue-600 rounded" style={{ width: `${pct}%` }} />
+                                            <div className="h-2 bg-blue-600 rounded" style={{width: `${pct}%`}}/>
                                         </div>
+                                        <button className={"mt-1 border rounded px-2 py-1 text-sm"} onClick={() => handleVote(p.id, r.optionId)}>
+                                            Vote on "{r.caption}"
+                                        </button>
                                     </div>
                                 );
                             })}

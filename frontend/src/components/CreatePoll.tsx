@@ -1,14 +1,7 @@
 import { type FormEvent, useState } from "react";
+import {createPoll} from "../services/api.ts";
 
-type Poll = {
-    id: number;
-    question: string;
-    publishedAt: string;
-    validUntil: string;
-    options: string[];
-};
-
-export function CreatePoll() {
+export function CreatePoll({creatorId, onDone} : {creatorId: number; onDone?: () => void}) {
     const [question, setQuestion] = useState("");
     const [validUntil, setValidUntil] = useState("");
     const [options, setOptions] = useState<string[]>(["", ""]);
@@ -25,7 +18,7 @@ export function CreatePoll() {
         setOptions(prev => prev.filter((_, i) => i !== idx));
     }
 
-    function handleSubmit(e: FormEvent) {
+    async function handleSubmit(e: FormEvent) {
         e.preventDefault();
 
         const trimmed = options.map(o => o.trim()).filter(Boolean);
@@ -37,17 +30,10 @@ export function CreatePoll() {
             alert("Valid until must be in the future.");
             return;
         }
+        const isoValidUntil = validUntil && validUntil.length > 0 ? new Date(validUntil).toISOString() : undefined
 
-        const poll: Poll = {
-            id: Date.now(),
-            question: question.trim(),
-            publishedAt: new Date().toISOString(), // alltid “nå”
-            validUntil,
-            options: trimmed,
-        };
-
-        console.log("poll", poll);
-        // TODO: send til backend senere
+        await createPoll(creatorId, question.trim(), trimmed,  isoValidUntil);
+        onDone?.();
     }
 
     const isValid =
@@ -111,6 +97,13 @@ export function CreatePoll() {
             >
                 Publish poll
             </button>
+                <button
+                    type="button"
+                    className="border rounded px-3 py-2"
+                    onClick={() => onDone?.()}
+                >
+                    ← Til meny
+                </button>
         </form>
     );
 }

@@ -1,18 +1,27 @@
 import * as React from "react";
 
-export function Identify() {
+interface IdentifyProps {
+    onLogin: (username: string, email: string) => Promise<void>
+}
+
+export function Identify({onLogin}: IdentifyProps) {
     const [name, setName] = React.useState<string>('');
     const [email, setEmail] = React.useState<string>('');
 
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault(); // For at siden ikke skal refreshe
         console.log(email);
         console.log(name);
 
-        if(!name || !email) {
-            alert("Please enter a valid input");
-            return;
+        if(!name.trim() || !email.includes("@")) {
+            alert("Please enter a valid name/ email");
+            return
+        }
+        try {
+            await onLogin(name, email);
+        } catch (e) {
+            alert("Failed to login. --> " + String(e));
         }
 
     }
@@ -27,10 +36,10 @@ export function Identify() {
                     name="name"
                     id="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)} />
+                    onChange={(e) => setName(e.target.value)}/>
                 <label htmlFor="email">Email</label>
                 <input
-                    type="text"
+                    type="email"
                     name="email"
                     id="email"
                     value={email}
