@@ -45,16 +45,16 @@ Content-Type: application/json
 }
 
 ### Hent poll med id 1
-GET http://localhost:8080/polls/1
+GET http://localhost:8080/polls/2
 Accept: application/json
 
 ### Vote på poll med id=1 option 1
-POST http://localhost:8080/polls/1/vote
+POST http://localhost:8080/polls/2/vote
 Content-Type: application/json
 
 {
   "userId" : 3,
-  "optionId" : 2,
+  "optionId" : 4,
   "when" : "2025-09-11T23:59:59Z"
 }
 

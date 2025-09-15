@@ -80,4 +80,29 @@ public class PollController {
         }
     }
 
+    @GetMapping("/{id}/results")
+    public List<Map<String, Object>> results(@PathVariable int id) {
+        Poll p = manager.listPolls().stream()
+                .filter(pp -> pp.getId() == id)
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No poll with id " + id));
+
+        var counts = p.getVotes().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        v -> v.getOption().getId(),
+                        java.util.stream.Collectors.counting()
+                ));
+
+        return p.getVoteOptions().stream()
+                .map(opt -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("optionId", opt.getId());
+                    m.put("caption", opt.getCaption());
+                    m.put("count", counts.getOrDefault(opt.getId(), 0L));
+                    return m;
+                })
+                .toList();
+    }
+
+
 }

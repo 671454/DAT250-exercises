@@ -68,7 +68,7 @@ public class Poll {
         this.id = id;
     }
 
-    @JsonIdentityReference(alwaysAsId = true)
+    @JsonIdentityReference(alwaysAsId = false)
     public List<VoteOption> getVoteOptions() {
         return options;
     }

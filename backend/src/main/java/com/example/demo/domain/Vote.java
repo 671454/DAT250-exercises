@@ -41,7 +41,7 @@ public class Vote {
         return poll;
     }
 
-    @JsonIdentityReference(alwaysAsId = true)
+    @JsonIdentityReference(alwaysAsId = false)
     public VoteOption getOption() {
         return option;
     }
