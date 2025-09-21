@@ -28,7 +28,7 @@ public class DataSeeder {
         if(!manager.listPolls().isEmpty())
             return;
 
-        int olaId, kariId;
+        Long olaId, kariId;
         try {
             olaId = manager.createUser("Ola Nordmann", "ola@gmail.com");
             kariId = manager.createUser("Kari Nordmann", "kari@gmail.com");
@@ -36,17 +36,17 @@ public class DataSeeder {
             throw new RuntimeException(e);
         }
 
-        int pollId = manager
+        Long pollId = manager
                 .createPoll(olaId, "Gogo or Gaga?", List.of("Gogo", "Gaga"), Instant.now().plus(1, ChronoUnit.DAYS));
         Poll poll = manager.listPolls().stream().filter(p -> p.getId() == pollId).findFirst().orElseThrow();
 
-        int gogoId = poll.getVoteOptions().stream()
+        Long gogoId = poll.getOptions().stream()
                 .filter(opt -> "Gogo".equals(opt.getCaption())).findFirst().map(VoteOption::getId)
-                .orElse(poll.getVoteOptions().get(0).getId());
+                .orElse(poll.getOptions().get(0).getId());
 
-        int gagaId = poll.getVoteOptions().stream()
+        Long gagaId = poll.getOptions().stream()
                 .filter(opt -> "Gaga".equals(opt.getCaption())).findFirst().map(VoteOption::getId)
-                .orElse(poll.getVoteOptions().get(1).getId());
+                .orElse(poll.getOptions().get(1).getId());
 
         manager.vote(olaId, pollId, gogoId, Instant.now());
         manager.vote(kariId, pollId, gagaId, Instant.now());

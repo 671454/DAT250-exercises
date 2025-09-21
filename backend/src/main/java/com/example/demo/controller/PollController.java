@@ -1,16 +1,12 @@
 package com.example.demo.controller;
 
-import com.example.demo.domain.Vote;
 import com.example.demo.domain.Poll;
-import com.example.demo.domain.VoteOption;
 import com.example.demo.service.PollManagerV2;
-import jakarta.annotation.PostConstruct;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +33,7 @@ public class PollController {
     @PostMapping
     public Map<String, Object> createPoll(@RequestBody Map<String, Object> body) {
         try {
-            Integer creatorId = (Integer) body.get("creatorId");   // <--- Kan ikke bruke int (primitiv) da objekt krever en Integer (referansetype). Integer tillater også null verdi.
+            Long creatorId = ((Number) body.get("creatorId")).longValue();   // <--- Kan ikke bruke int (primitiv) da objekt krever en Integer (referansetype). Integer tillater også null verdi.
             String question = (String) body.get("question");
             @SuppressWarnings("unchecked")
             List<String> options = (List<String>) body.get("options");
@@ -46,7 +42,7 @@ public class PollController {
             if(validUntilStr != null && !validUntilStr.isBlank())
                 validUntil = Instant.parse(validUntilStr);
 
-            int pollId = manager.createPoll(creatorId, question, options, validUntil);
+            Long pollId = manager.createPoll(creatorId, question, options, validUntil);
             return Map.of("pollId", pollId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -59,31 +55,31 @@ public class PollController {
     }
 
     @GetMapping("/{id}")
-    public Poll getPoll(@PathVariable("id") int pollId) {
+    public Poll getPoll(@PathVariable("id") Long pollId) {
         return manager.listPolls().stream().
-                filter(p -> p.getId() == pollId).findFirst()
+                filter(p -> p.getId().equals(pollId)).findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No poll with id " + pollId));
     }
 
     @PostMapping("/{pollId}/vote")
-    public Map<String, Object> vote(@PathVariable("pollId") int pollId, @RequestBody Map<String, Object> body) {
+    public Map<String, Object> vote(@PathVariable("pollId") Long pollId, @RequestBody Map<String, Object> body) {
         try {
-            Integer userId = (Integer) body.get("userId");
-            Integer optionId = (Integer) body.get("optionId");
+            Long userId = ((Number) body.get("userId")).longValue();
+            Long optionId = ((Number) body.get("optionId")).longValue();
             String whenStr = (String) body.get("when");
             Instant when = (whenStr != null && !whenStr.isBlank()) ? Instant.parse(whenStr) : null;
 
-            int voteId = manager.vote(userId, pollId, optionId, when);
+            Long voteId = manager.vote(userId, pollId, optionId, when);
             return Map.of("voteId", voteId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.MULTI_STATUS, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
     @GetMapping("/{id}/results")
-    public List<Map<String, Object>> results(@PathVariable int id) {
+    public List<Map<String, Object>> results(@PathVariable Long id) {
         Poll p = manager.listPolls().stream()
-                .filter(pp -> pp.getId() == id)
+                .filter(pp -> pp.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No poll with id " + id));
 
@@ -93,7 +89,7 @@ public class PollController {
                         java.util.stream.Collectors.counting()
                 ));
 
-        return p.getVoteOptions().stream()
+        return p.getOptions().stream()
                 .map(opt -> {
                     Map<String, Object> m = new java.util.HashMap<>();
                     m.put("optionId", opt.getId());

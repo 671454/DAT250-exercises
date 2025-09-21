@@ -13,31 +13,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Primary
 @Component
 public class PollManagerV2 {
 
-    private final Map<Integer, User> users = new ConcurrentHashMap<>();
-    private final Map<Integer, Poll> polls = new ConcurrentHashMap<>();
-    private final Map<Integer, Vote> votes = new ConcurrentHashMap<>();
-    private final Map<Integer, VoteOption> options = new ConcurrentHashMap<>();
+    private final Map<Long, User> users = new ConcurrentHashMap<>();
+    private final Map<Long, Poll> polls = new ConcurrentHashMap<>();
+    private final Map<Long, Vote> votes = new ConcurrentHashMap<>();
+    private final Map<Long, VoteOption> options = new ConcurrentHashMap<>();
 
-    private final AtomicInteger userSeq = new AtomicInteger(1);
-    private final AtomicInteger pollSeq = new AtomicInteger(1);
-    private final AtomicInteger voteSeq = new AtomicInteger(1);
-    private final AtomicInteger optionSeq = new AtomicInteger(1);
+    private final AtomicLong userSeq = new AtomicLong(1);
+    private final AtomicLong pollSeq = new AtomicLong(1);
+    private final AtomicLong voteSeq = new AtomicLong(1);
+    private final AtomicLong optionSeq = new AtomicLong(1);
 
 
 
     /*--------------------- User ---------------------*/
-    public int createUser(String username, String email) {
+    public Long createUser(String username, String email) {
         if (username == null || email == null) {
             throw new IllegalArgumentException("Username and email must be provided");
         }
 
-        int id = userSeq.getAndIncrement();
+        Long id = userSeq.getAndIncrement();
         User u = new User();
         u.setId(id);
         u.setEmail(email);
@@ -46,7 +46,7 @@ public class PollManagerV2 {
         return id;
     }
 
-    public User getUser(int id) {
+    public User getUser(Long id) {
         if(users.get(id) == null)
             throw new NoSuchElementException("No user with given id " + id);
         return users.get (id);
@@ -59,25 +59,25 @@ public class PollManagerV2 {
 
 
     /*--------------------- Poll ---------------------*/
-    public int createPoll(int creatorId, String question, List<String> options, Instant validUntil) {
+    public Long createPoll(Long creatorId, String question, List<String> options, Instant validUntil) {
         if(users.get(creatorId) == null)
             throw new NoSuchElementException("No user with given id " + creatorId);
         if(question == null)
-            throw new NoSuchElementException("Question cannot be empty");
+            throw new IllegalArgumentException("Question cannot be empty");
         if(options.size() < 2)
             throw new IllegalArgumentException("Poll needs at least 2 options");
 
-        int id = pollSeq.getAndIncrement();
+        Long id = pollSeq.getAndIncrement();
         Poll p = new Poll();
-        p.setCreator(users.get(creatorId));
+        p.setCreatedBy(users.get(creatorId));
         p.setId(id);
         p.setPublishedAt(Instant.now());
         p.setValidUntil(validUntil);
         p.setQuestion(question);
 
-        int order = 1;
+        int order = 0;
         for(String s : options) {
-            int optId = optionSeq.getAndIncrement();
+            Long optId = optionSeq.getAndIncrement();
             VoteOption opt = new VoteOption();
             opt.setId(optId);
             opt.setCaption(s);
@@ -90,7 +90,7 @@ public class PollManagerV2 {
     }
 
 
-    private Poll getPoll(int pollId) {
+    private Poll getPoll(Long pollId) {
         if(polls.get(pollId) == null)
             throw new NoSuchElementException("No poll with id of " + pollId);
         return polls.get(pollId);
@@ -103,12 +103,12 @@ public class PollManagerV2 {
 
 
     /*--------------------- Vote ---------------------*/
-    public int vote(int userId, int pollId, int optionId, Instant when) {
+    public Long vote(Long userId, Long pollId, Long optionId, Instant when) {
         User u = getUser(userId);
         Poll p = getPoll(pollId);
         VoteOption option = getVoteOption(optionId);
 
-        if(option.getPoll() == null || option.getPoll().getId() != pollId)
+        if(option.getPoll() == null || !option.getPoll().getId().equals(pollId))
             throw new IllegalArgumentException("Either provided option is non existent or does not belong to given poll with id " + pollId);
 
         Instant now = when != null ? when : Instant.now();
@@ -116,7 +116,7 @@ public class PollManagerV2 {
             throw new IllegalStateException("Poll is not open for voting. Closed at " + p.getValidUntil() + ". Attempt to vote at " + when);
 
         //Check if user already voted for this poll, if so remove old.
-        Vote existing = p.getVotes().stream().filter(v -> v.getVoter().getId() == userId).findFirst().orElse(null);
+        Vote existing = p.getVotes().stream().filter(v -> v.getVoter().getId().equals(userId)).findFirst().orElse(null);
 
         //remapping the vote
         if(existing != null) {
@@ -128,7 +128,7 @@ public class PollManagerV2 {
             return existing.getId();
         }
 
-        int voteId = voteSeq.getAndIncrement();
+        Long voteId = voteSeq.getAndIncrement();
         Vote v = new Vote();
         v.setPublishedAt(now);
         v.setId(voteId);
@@ -146,9 +146,9 @@ public class PollManagerV2 {
 
 
     /*--------------------- VoteOption ---------------------*/
-    private VoteOption getVoteOption(int optionId) {
+    private VoteOption getVoteOption(Long optionId) {
         if(options.get(optionId) == null)
-            throw new NoSuchElementException(optionId + "is not an option for any poll");
+            throw new NoSuchElementException(optionId + " is not an option for any poll");
         return options.get(optionId);
     }
 

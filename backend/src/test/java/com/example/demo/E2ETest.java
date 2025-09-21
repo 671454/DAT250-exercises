@@ -32,7 +32,7 @@ public class E2ETest {
         return RestClient.builder().baseUrl("http://localhost:" + port).build();
     }
 
-    private int createUser(String username, String email) {
+    private Long createUser(String username, String email) {
         User user = http().post().uri("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of(
@@ -43,8 +43,9 @@ public class E2ETest {
         assertThat(user).isNotNull();
         return user.getId();
     }
-    private int createPoll(int creatorId, String question, List<String> options, String validUntil){
-        Map<?, ?> pollResp = http().post().uri("/polls")
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> createPoll(Long creatorId, String question, List<String> options, String validUntil){
+        return http().post().uri("/polls")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of(
                         "creatorId", creatorId,
@@ -53,11 +54,9 @@ public class E2ETest {
                         "validUntil", validUntil
                 ))
                 .retrieve().body(Map.class);
-        assertThat(pollResp).isNotNull();
-        return ((Number) pollResp.get("pollId")).intValue();
     }
 
-    private Map<?, ?> createVote(int pollId, int userId, int optionId, Instant when){
+    private Map<?, ?> createVote(Long pollId, Long userId, Long optionId, Instant when){
         return http().post().uri("/polls/"+pollId+"/vote")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of(
@@ -69,7 +68,7 @@ public class E2ETest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> getPoll(int pollId) {
+    private Map<String, Object> getPoll(Long pollId) {
         return http().get().uri("/polls/"+pollId).retrieve().body(Map.class);
     }
 
@@ -77,16 +76,20 @@ public class E2ETest {
     void E2EPath() {
         String question = "Har du stått opp på rett ben i dag?";
 
-        int userId = createUser("Ola Nordman", "ola@gmail.com");
-        int pollId = createPoll(userId, question, List.of("Ja", "Nei"), "2025-12-31T23:59:59Z");
+        Long userId = createUser("Ola Nordman", "ola@gmail.com");
+        var pollResp = createPoll(userId, question, List.of("Ja", "Nei"), "2025-12-31T23:59:59Z");
+        Long pollId = ((Number) pollResp.get("pollId")).longValue();
+        var poll = getPoll(pollId);
+        List<Map<String, Object>> opts = (List<Map<String, Object>>) poll.get("options");
+        Long optionId = ((Number) opts.getFirst().get("id")).longValue();
 
-        Map<?, ?> voteResp = createVote(pollId, userId, 1, Instant.now());
+        Map<?, ?> voteResp = createVote(pollId, userId, optionId, Instant.now());
+        poll = getPoll(pollId);
         assertThat(voteResp.get("voteId")).isNotNull();
 
-        var poll = getPoll(pollId);
         assertThat(poll).isNotNull();
-        assertThat(poll.get("id")).isEqualTo(pollId);
-        assertThat((List<?>) poll.get("voteOptions")).hasSize(2);
+        assertThat(((Number) poll.get("id")).longValue()).isEqualTo(pollId);
+        assertThat((List<?>) poll.get("options")).hasSize(2);
         assertThat((List<?>) poll.get("votes")).isNotEmpty();
     }
 

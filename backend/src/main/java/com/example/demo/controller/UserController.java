@@ -23,12 +23,12 @@ public class UserController {
     public User createUser(@RequestBody User user) { //     <--- @RequestBody binds the JSON-body from the request to a Java object (User)
         if(user.getEmail() == null || user.getUsername() == null || user.getEmail().isBlank() || user.getUsername().isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username and Email must be set");
-        int userId = manager.createUser(user.getUsername(), user.getEmail());
+        Long userId = manager.createUser(user.getUsername(), user.getEmail());
         return manager.getUser(userId);
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable("id") int userId) { //        <--- @PathVariable binds URL-variable to method-parameter
+    public User getUser(@PathVariable("id") Long userId) { //        <--- @PathVariable binds URL-variable to method-parameter
         try {
             return manager.getUser(userId);
         } catch (Exception e) {
