@@ -44,8 +44,8 @@ and error-prone.
 ## Screenshot of entities in H2 DB
 To be able to inspect the entities in DB, I had to replace PersistenceConfiguration("polls") setup in PollsTest with my 
 own EntityFactory configured via a persistence.xml file.
-By using this: <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:file:./data/pollsdb"/>, the test class produced 
-a "pollsdb.mv.db" fill which I linked to Intellij's built-in DB viewer. The screenshot below shows the expected entities
+By using this:<property name="jakarta.persistence.jdbc.url" value="jdbc:h2:file:./data/pollsdb"/>, the test class produced 
+a "pollsdb.mv.db" file which I linked to Intellij's built-in DB viewer. The screenshot below shows the expected entities
 and FKs present in the H2 DB. 
 
 ![img_1.png](img_1.png)
