@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.domain.Poll;
 import com.example.demo.service.PollManagerV2;
+import com.example.demo.service.VoteCacheCount;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,15 +18,16 @@ import java.util.Map;
 public class PollController {
 
     private final PollManagerV2 manager;
+    private final VoteCacheCount cache;
 
-    public PollController(PollManagerV2 manager) {
+    public PollController(PollManagerV2 manager, VoteCacheCount cache) {
+
         this.manager = manager;
+        this.cache = cache;
     }
 
-
-
     /**
-     * To remove the clients concern of creating a complete Poll object, which consists of a lot of dependencies,
+     * To remove the clients concern of creating a complete Poll object, which contains a lot of dependencies,
      * we are using a Map, which also removes risks of inconsistencies. It is the managers job to create this obj
      * and not the clients.
      * @return f.eks. { "pollid" : 1234}
@@ -70,6 +72,7 @@ public class PollController {
             Instant when = (whenStr != null && !whenStr.isBlank()) ? Instant.parse(whenStr) : null;
 
             Long voteId = manager.vote(userId, pollId, optionId, when);
+            cache.invalidate(pollId);
             return Map.of("voteId", voteId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -83,18 +86,21 @@ public class PollController {
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No poll with id " + id));
 
-        var counts = p.getVotes().stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        v -> v.getOption().getId(),
-                        java.util.stream.Collectors.counting()
-                ));
+//        var counts = p.getVotes().stream()
+//                .collect(java.util.stream.Collectors.groupingBy(
+//                        v -> v.getOption().getId(),
+//                        java.util.stream.Collectors.counting()
+//                ));
+
+        Map<Integer, Long> countsByOrder = cache.getCountsCached(id);
 
         return p.getOptions().stream()
                 .map(opt -> {
+                    long c = countsByOrder.getOrDefault(opt.getPresentationOrder(), 0L);
                     Map<String, Object> m = new java.util.HashMap<>();
                     m.put("optionId", opt.getId());
                     m.put("caption", opt.getCaption());
-                    m.put("count", counts.getOrDefault(opt.getId(), 0L));
+                    m.put("count", c);
                     return m;
                 })
                 .toList();
