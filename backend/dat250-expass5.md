@@ -35,7 +35,7 @@ The service consists also of these methods:
   - Uses manager instance to retrieve data from memory/DB.
 
 The image shows the TTL of poll with id of 1 after loading the page
-![img_1.png](img_1.png)
+![img_3.png](img_3.png)
 
 This shows the poll not being in cache, and then gets added after a new page-load
 ![img_2.png](img_2.png)
