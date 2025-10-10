@@ -34,6 +34,8 @@ dependencies {
     implementation("com.h2database:h2:2.3.232")
     implementation("redis.clients:jedis:6.2.0")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
 
 }
 
