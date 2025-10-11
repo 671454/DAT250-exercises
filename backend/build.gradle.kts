@@ -36,6 +36,7 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.rabbitmq:amqp-client:5.21.0")
 
 }
 

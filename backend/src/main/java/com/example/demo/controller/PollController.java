@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.domain.Poll;
+import com.example.demo.messaging.VoteEvent;
+import com.example.demo.service.EventPublisher;
 import com.example.demo.service.PollManagerV2;
 import com.example.demo.service.VoteCacheCount;
 import org.springframework.http.HttpStatus;
@@ -19,11 +21,13 @@ public class PollController {
 
     private final PollManagerV2 manager;
     private final VoteCacheCount cache;
+    private final EventPublisher events;
 
-    public PollController(PollManagerV2 manager, VoteCacheCount cache) {
+    public PollController(PollManagerV2 manager, VoteCacheCount cache, EventPublisher events) {
 
         this.manager = manager;
         this.cache = cache;
+        this.events = events;
     }
 
     /**
@@ -45,6 +49,10 @@ public class PollController {
                 validUntil = Instant.parse(validUntilStr);
 
             Long pollId = manager.createPoll(creatorId, question, options, validUntil);
+
+            //Publish create-event on the topic *.*.create
+            events.publishPollCreated(pollId, question);
+
             return Map.of("pollId", pollId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -73,6 +81,10 @@ public class PollController {
 
             Long voteId = manager.vote(userId, pollId, optionId, when);
             cache.invalidate(pollId);
+
+            //Publiser vote-event on the topic *.*.vote
+            events.publishVote(new VoteEvent(pollId, optionId, userId, when));
+
             return Map.of("voteId", voteId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

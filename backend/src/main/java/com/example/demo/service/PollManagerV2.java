@@ -115,8 +115,9 @@ public class PollManagerV2 {
         if(p.getValidUntil() != null && now.isAfter(p.getValidUntil()))
             throw new IllegalStateException("Poll is not open for voting. Closed at " + p.getValidUntil() + ". Attempt to vote at " + when);
 
-        //Check if user already voted for this poll, if so remove old.
-        Vote existing = p.getVotes().stream().filter(v -> v.getVoter().getId().equals(userId)).findFirst().orElse(null);
+        //Check if user already voted for this poll, if so remove old. Including only votes with id
+        Vote existing = p.getVotes().stream().filter(v -> v.getVoter() != null
+                && v.getVoter().getId().equals(userId)).findFirst().orElse(null);
 
         //remapping the vote
         if(existing != null) {
@@ -161,4 +162,29 @@ public class PollManagerV2 {
             opt.getVotes().remove(existing);
     }
 
+    public Long voteAnonymous(Long pollId, Long optionId, Instant when) {
+        Poll p = getPoll(pollId);
+        VoteOption option = getVoteOption(optionId);
+
+        if(option.getPoll() == null || !option.getPoll().getId().equals(pollId))
+            throw new IllegalArgumentException("Either provided option is non existent or does not belong to given poll with id " + pollId);
+
+        Instant now = when != null ? when : Instant.now();
+        if(p.getValidUntil() != null && now.isAfter(p.getValidUntil()))
+            throw new IllegalStateException("Poll is not open for voting. Closed at " + p.getValidUntil() + ". Attempt to vote at " + when);
+
+        Long voteId = voteSeq.getAndIncrement();
+        Vote v = new Vote();
+        v.setPublishedAt(now);
+        v.setPoll(p);
+        v.setId(voteId);
+        v.setVoter(null);
+        v.setOption(option);
+
+        // Ikke sett user.addVote siden det er en anonym vote
+        option.addVote(v);
+        p.addVote(v);
+        votes.put(voteId, v);
+        return voteId;
+    }
 }
