@@ -3,7 +3,7 @@ FROM gradle:8.8-jdk21-alpine AS builder
 WORKDIR /home/gradle/src
 # Kopier hele prosjektet med riktig eierskap
 COPY --chown=gradle:gradle . .
-# Bygg JAR uten å bruke wrapper
+
 RUN gradle --no-daemon clean bootJar
 
 # ---------- RUNTIME ----------

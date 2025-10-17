@@ -1,20 +1,20 @@
 spring:
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
   docker:
     compose:
-      enabled: true
-      file: C:/Dev/DAT250/backend/docker-compose.yml
-      lifecycle-management: start_and_stop
+      enabled: false
+#      file: C:/Dev/DAT250/backend/docker-compose.yml
+#      lifecycle-management: start_and_stop
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 
 
