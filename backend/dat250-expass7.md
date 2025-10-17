@@ -13,7 +13,7 @@ To make sure my application is not running as root these lines were added in Doc
 
 During containerization of the application (app) I encountered connection problems with the redis container. The reason
 for this was that app used "localhost:6379" from previous experiments, but a docker environment like
-this should communicate via known service-names. The solution was to use created env-variables in mye docker-compose 
+this should communicate via known service-names. The solution was to use created env-variables in my docker-compose 
 file, like SPRING_DATA_REDIS_HOST("redis") and SPRING_DATA_REDIS_PORT("6379"), and now my app container could
 connect to redis (and rabbitMQ) without problems. 
 
